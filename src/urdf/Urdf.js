@@ -23,6 +23,7 @@ ROS3D.Urdf = function(options) {
   var tfClient = options.tfClient;
   var tfPrefix = options.tfPrefix || '';
   var loader = options.loader || ROS3D.COLLADA_LOADER_2;
+  var color = options.color || null;
 
   THREE.Object3D.call(this);
 
@@ -32,7 +33,13 @@ ROS3D.Urdf = function(options) {
     var link = links[l];
     if (link.visual && link.visual.geometry) {
       if (link.visual.geometry.type === ROSLIB.URDF_MESH) {
-        var frameID = tfPrefix + '/' + link.name;
+        var frameID;
+        if (tfPrefix !== '') {
+          frameID = '/' + tfPrefix + '/' + link.name;
+        }
+        else {
+          frameID = '/' + link.name;
+        }
         var uri = link.visual.geometry.filename;
         var fileType = uri.substr(-4).toLowerCase();
 
@@ -43,6 +50,7 @@ ROS3D.Urdf = function(options) {
             path : path,
             resource : uri.substring(10),
             loader : loader
+            color : color
           });
           
           // check for a scale

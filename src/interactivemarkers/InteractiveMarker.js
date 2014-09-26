@@ -198,10 +198,15 @@ ROS3D.InteractiveMarker.prototype.rotateAxis = function(control, origOrientation
  * @param control - the control to use
  */
 ROS3D.InteractiveMarker.prototype.feedbackEvent = function(type, control) {
+    var clickPosition;
+    if(this.dragStart.event3d.intersection !== undefined) {
+	clickPosition = this.dragStart.event3d.intersection.point;
+    }
   this.dispatchEvent({
     type : type,
     position : this.position.clone(),
     orientation : this.quaternion.clone(),
+    clickPosition: clickPosition,
     controlName : control.name
   });
 };

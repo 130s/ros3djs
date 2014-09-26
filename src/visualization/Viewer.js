@@ -32,6 +32,11 @@ ROS3D.Viewer = function(options) {
     y : 3,
     z : 3
   };
+  this.lightPosition = options.lightPose || {
+    x : 1,
+    y : -1,
+    z : 0
+  };
 
   // create the canvas to render to
   this.renderer = new THREE.WebGLRenderer({
@@ -86,7 +91,10 @@ ROS3D.Viewer = function(options) {
     that.cameraControls.update();
 
     // put light to the top-left of the camera
-    that.directionalLight.position = that.camera.localToWorld(new THREE.Vector3(-1, 1, 0));
+    that.directionalLight.position = that.camera.localToWorld(
+          new THREE.Vector3(that.lightPosition.x || -1,
+                            that.lightPosition.y || 1,
+                            that.lightPosition.z || 0));
     that.directionalLight.position.normalize();
 
     // set the scene
@@ -119,4 +127,16 @@ ROS3D.Viewer.prototype.addObject = function(object, selectable) {
   } else {
     this.scene.add(object);
   }
+};
+
+ROS3D.Viewer.prototype.setCenter = function(position) {
+    this.cameraControls.setCenter(position);
+};
+
+ROS3D.Viewer.prototype.setCamera = function(position) {
+    this.camera.position.set(position.x, position.y, position.z);
+};
+
+ROS3D.Viewer.prototype.setLight = function(position) {
+    this.lightPosition = position;
 };

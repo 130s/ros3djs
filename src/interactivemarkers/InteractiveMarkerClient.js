@@ -20,6 +20,7 @@
 ROS3D.InteractiveMarkerClient = function(options) {
   var that = this;
   options = options || {};
+  this.hidden = options.hidden || false;
   this.ros = options.ros;
   this.tfClient = options.tfClient;
   this.topic = options.topic;
@@ -145,32 +146,32 @@ ROS3D.InteractiveMarkerClient.prototype.processUpdate = function(message) {
     });
     that.interactiveMarkers[msg.name] = handle;
 
-    // create the actual marker
-    var intMarker = new ROS3D.InteractiveMarker({
-      handle : handle,
-      camera : that.camera,
-      path : that.path,
-      loader : that.loader
-    });
-    // add it to the scene
-    intMarker.name = msg.name;
-    that.rootObject.add(intMarker);
+    if (!that.hidden) {
+        // create the actual marker
+        var intMarker = new ROS3D.InteractiveMarker({
+            handle : handle,
+            camera : that.camera,
+            path : that.path
+        });
+        // add it to the scene
+        intMarker.name = msg.name;
+        that.rootObject.add(intMarker);
 
-    // listen for any pose updates from the server
-    handle.on('pose', function(pose) {
-      intMarker.onServerSetPose({
-        pose : pose
-      });
-    });
+        // listen for any pose updates from the server
+        handle.on('pose', function(pose) {
+            intMarker.onServerSetPose({
+                pose : pose
+            });
+        });
 
-    intMarker.addEventListener('user-pose-change', handle.setPoseFromClient.bind(handle));
-    intMarker.addEventListener('user-mousedown', handle.onMouseDown.bind(handle));
-    intMarker.addEventListener('user-mouseup', handle.onMouseUp.bind(handle));
-    intMarker.addEventListener('user-button-click', handle.onButtonClick.bind(handle));
-    intMarker.addEventListener('menu-select', handle.onMenuSelect.bind(handle));
-
-    // now list for any TF changes
-    handle.subscribeTf();
+        intMarker.addEventListener('user-pose-change', handle.setPoseFromClient.bind(handle));
+        intMarker.addEventListener('user-mousedown', handle.onMouseDown.bind(handle));
+        intMarker.addEventListener('user-mouseup', handle.onMouseUp.bind(handle));
+        intMarker.addEventListener('user-button-click', handle.onButtonClick.bind(handle));
+        intMarker.addEventListener('menu-select', handle.onMenuSelect.bind(handle));
+        // now list for any TF changes
+        handle.subscribeTf();
+    }
   });
 };
 
@@ -182,7 +183,46 @@ ROS3D.InteractiveMarkerClient.prototype.processUpdate = function(message) {
 ROS3D.InteractiveMarkerClient.prototype.eraseIntMarker = function(intMarkerName) {
   if (this.interactiveMarkers[intMarkerName]) {
     // remove the object
-    this.rootObject.remove(this.rootObject.getObjectByName(intMarkerName));
+    this.rootObject.remove(this.rootObject.getChildByName(intMarkerName));
     delete this.interactiveMarkers[intMarkerName];
   }
 };
+
+ROS3D.InteractiveMarkerClient.prototype.showIntMarker = function(intMarkerName) {
+  if (this.interactiveMarkers[intMarkerName]) {
+    var handle = this.interactiveMarkers[intMarkerName];
+    // create the actual marker
+    var intMarker = new ROS3D.InteractiveMarker({
+      handle : handle,
+      camera : this.camera,
+      path : this.path
+    });
+    // add it to the scene
+    intMarker.name = intMarkerName;
+    this.rootObject.add(intMarker);
+
+    // listen for any pose updates from the server
+    handle.on('pose', function(pose) {
+        intMarker.onServerSetPose({
+            pose : pose
+        });
+    });
+
+      intMarker.addEventListener('user-pose-change', handle.setPoseFromClient.bind(handle));
+      intMarker.addEventListener('user-mousedown', handle.onMouseDown.bind(handle));
+      intMarker.addEventListener('user-mouseup', handle.onMouseUp.bind(handle));
+      intMarker.addEventListener('user-button-click', handle.onButtonClick.bind(handle));
+      intMarker.addEventListener('menu-select', handle.onMenuSelect.bind(handle));
+        // now list for any TF changes
+      handle.subscribeTf();
+  }
+};
+
+ROS3D.InteractiveMarkerClient.prototype.hideIntMarker = function(intMarkerName) {
+  if (this.interactiveMarkers[intMarkerName]) {
+
+    // hide the object
+    this.rootObject.remove(this.rootObject.getChildByName(intMarkerName));
+  }
+};
+

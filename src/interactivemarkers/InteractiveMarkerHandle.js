@@ -29,6 +29,7 @@ ROS3D.InteractiveMarkerHandle = function(options) {
   this.timeoutHandle = null;
   this.tfTransform = new ROSLIB.Transform();
   this.pose = new ROSLIB.Pose();
+  this.clickPosition = null;
 
   // start by setting the pose
   this.setPoseFromServer(this.message.pose);
@@ -155,14 +156,25 @@ ROS3D.InteractiveMarkerHandle.prototype.onMenuSelect = function(event) {
 ROS3D.InteractiveMarkerHandle.prototype.sendFeedback = function(eventType, clickPosition,
     menuEntryID, controlName) {
 
-  // check for the click position
-  var mousePointValid = clickPosition !== undefined;
-  clickPosition = clickPosition || {
-    x : 0,
-    y : 0,
-    z : 0
-  };
+    if(clickPosition) {
+	var pos = new ROSLIB.Vector3(clickPosition);
+      pos.subtract(this.tfTransform.translation);
+	this.tfTransform.rotation.invert();
+	pos.multiplyQuaternion(this.tfTransform.rotation);
+	this.tfTransform.rotation.invert();
+	this.clickPosition = {
+      x : pos.x,
+      y : pos.y,
+      z : pos.z
+	};
+    }
+    if(eventType !== ROS3D.INTERACTIVE_MARKER_MOUSE_DOWN &&
+       eventType !== ROS3D.INTERACTIVE_MARKER_MOUSE_UP) {
+	  this.clickPosition = undefined;
+    }
 
+  // check for the click position
+  var mousePointValid = this.clickPosition !== undefined;
   var feedback = {
     header : this.header,
     client_id : this.clientID,
@@ -170,7 +182,7 @@ ROS3D.InteractiveMarkerHandle.prototype.sendFeedback = function(eventType, click
     control_name : controlName,
     event_type : eventType,
     pose : this.pose,
-    mouse_point : clickPosition,
+    mouse_point : this.clickPosition,
     mouse_point_valid : mousePointValid,
     menu_entry_id : menuEntryID
   };

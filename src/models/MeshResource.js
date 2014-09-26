@@ -23,6 +23,7 @@ ROS3D.MeshResource = function(options) {
   var path = options.path || '/';
   var resource = options.resource;
   var material = options.material || null;
+  var color = options.color || null;
   this.warnings = options.warnings;
   var loaderType = options.loader || ROS3D.COLLADA_LOADER_2;
 
@@ -54,6 +55,14 @@ ROS3D.MeshResource = function(options) {
       if(loaderType === ROS3D.COLLADA_LOADER_2 && collada.dae.asset.unit) {
         var scale = collada.dae.asset.unit;
         collada.scene.scale = new THREE.Vector3(scale, scale, scale);
+        collada.threejs.materials.forEach(
+              function(element) {
+                  if (color !== null) {
+                      element.emissive.r = (color & 0xff0000) / (255.0 * 256.0 * 256.0);
+                      element.emissive.g = (color & 0x00ff00) / (255.0 * 256.0);
+                      element.emissive.b = (color & 0x0000ff) / 255.0;
+                  }
+              });
       }
 
       if(material !== null) {
