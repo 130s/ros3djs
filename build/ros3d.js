@@ -2593,7 +2593,7 @@ ROS3D.Urdf = function(options) {
           var mesh = new ROS3D.MeshResource({
             path : path,
             resource : uri.substring(10),
-            loader : loader
+            loader : loader,
             color : color
           });
           
@@ -2716,7 +2716,7 @@ ROS3D.UrdfClient = function(options) {
       path : that.path,
       tfClient : that.tfClient,
       tfPrefix : tfPrefix,
-      loader : loader
+      loader : loader,
       color : that.color
     }));
   });
